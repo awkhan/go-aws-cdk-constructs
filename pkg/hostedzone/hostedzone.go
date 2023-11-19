@@ -45,6 +45,7 @@ func New(scope constructs.Construct, id string, options Options) HostedZone {
 			SubjectAlternativeNames: jsii.Strings(fmt.Sprintf("www.%s", options.Name)),
 			Validation:              awscertificatemanager.CertificateValidation_FromDns(hostedZone),
 		})
+		result.Certificate = &certificate
 	}
 
 	return result
