@@ -6,6 +6,8 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk/v2/awscloudfront"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awscloudfrontorigins"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsiam"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsroute53"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsroute53targets"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awss3"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awss3assets"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awss3deployment"
@@ -18,13 +20,14 @@ type Options struct {
 	DomainName  string
 	AssetPath   string
 	Certificate awscertificatemanager.ICertificate
+	HostedZone  awsroute53.IHostedZone
 }
 
 type Website struct {
 	constructs.Construct
 }
 
-func New(scope constructs.Construct, id string, options *Options) Website {
+func New(scope constructs.Construct, id string, options Options) Website {
 
 	this := constructs.NewConstruct(scope, &id)
 
@@ -64,7 +67,7 @@ func New(scope constructs.Construct, id string, options *Options) Website {
 		Function:  function,
 	}
 
-	awscloudfront.NewDistribution(this, jsii.String("cloudfront-distribution"), &awscloudfront.DistributionProps{
+	distribution := awscloudfront.NewDistribution(this, jsii.String("cloudfront-distribution"), &awscloudfront.DistributionProps{
 		DefaultBehavior: &awscloudfront.BehaviorOptions{
 			FunctionAssociations: &[]*awscloudfront.FunctionAssociation{&functionAssoc}, //slightly awk
 			ViewerProtocolPolicy: awscloudfront.ViewerProtocolPolicy_REDIRECT_TO_HTTPS,
@@ -75,6 +78,13 @@ func New(scope constructs.Construct, id string, options *Options) Website {
 		Comment:             new(string),
 		DefaultRootObject:   new(string),
 		DomainNames:         jsii.Strings(options.DomainName),
+	})
+
+	cfTarget := awsroute53targets.NewCloudFrontTarget(distribution)
+	awsroute53.NewARecord(this, jsii.String("distribution-a-record"), &awsroute53.ARecordProps{
+		Zone:   options.HostedZone,
+		Ttl:    awscdk.Duration_Seconds(jsii.Number(60)),
+		Target: awsroute53.RecordTarget_FromAlias(cfTarget),
 	})
 
 	return Website{this}
