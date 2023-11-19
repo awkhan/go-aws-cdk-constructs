@@ -1,6 +1,7 @@
 package hostedzone
 
 import (
+	"fmt"
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awscertificatemanager"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsroute53"
@@ -37,6 +38,13 @@ func New(scope constructs.Construct, id string, options Options) HostedZone {
 			Validation:      awscertificatemanager.CertificateValidation_FromDns(hostedZone),
 		})
 		result.Certificate = &certificate
+
+		certificate = awscertificatemanager.NewCertificate(this, jsii.String("certificate-v2"), &awscertificatemanager.CertificateProps{
+			DomainName:              jsii.String(options.Name),
+			CertificateName:         jsii.String(options.Name),
+			SubjectAlternativeNames: jsii.Strings(fmt.Sprintf("www.%s", options.Name)),
+			Validation:              awscertificatemanager.CertificateValidation_FromDns(hostedZone),
+		})
 	}
 
 	return result
