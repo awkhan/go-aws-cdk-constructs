@@ -1,6 +1,7 @@
 package website
 
 import (
+	"fmt"
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awscertificatemanager"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awscloudfront"
@@ -85,6 +86,12 @@ func New(scope constructs.Construct, id string, options Options) Website {
 		Zone:   options.HostedZone,
 		Ttl:    awscdk.Duration_Seconds(jsii.Number(60)),
 		Target: awsroute53.RecordTarget_FromAlias(cfTarget),
+	})
+
+	awsroute53.NewCnameRecord(this, jsii.String("www-redirect"), &awsroute53.CnameRecordProps{
+		Zone:       options.HostedZone,
+		Ttl:        awscdk.Duration_Seconds(jsii.Number(60)),
+		DomainName: jsii.String(fmt.Sprintf("www.%s", options.DomainName)),
 	})
 
 	return Website{this}
