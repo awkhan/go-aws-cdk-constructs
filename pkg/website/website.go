@@ -1,6 +1,7 @@
 package website
 
 import (
+	"fmt"
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awscertificatemanager"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awscloudfront"
@@ -73,11 +74,8 @@ func New(scope constructs.Construct, id string, options Options) Website {
 			ViewerProtocolPolicy: awscloudfront.ViewerProtocolPolicy_REDIRECT_TO_HTTPS,
 			Origin:               bucketOrigin,
 		},
-		AdditionalBehaviors: &map[string]*awscloudfront.BehaviorOptions{},
-		Certificate:         options.Certificate,
-		Comment:             new(string),
-		DefaultRootObject:   new(string),
-		DomainNames:         jsii.Strings(options.DomainName),
+		Certificate: options.Certificate,
+		DomainNames: jsii.Strings(options.DomainName, fmt.Sprintf("www.%s", options.DomainName)),
 	})
 
 	cfTarget := awsroute53targets.NewCloudFrontTarget(distribution)
