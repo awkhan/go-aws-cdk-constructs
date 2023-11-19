@@ -23,7 +23,7 @@ func ParseConfigurationInto(app awscdk.App, cfg interface{}) {
 		os.Exit(2)
 	}
 
-	err = json.Unmarshal(data, &app)
+	err = json.Unmarshal(data, &cfg)
 	if err != nil {
 		fmt.Println("unable to unmarshal configuration")
 		os.Exit(3)
