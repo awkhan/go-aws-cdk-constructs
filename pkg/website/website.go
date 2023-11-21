@@ -61,7 +61,7 @@ func New(scope constructs.Construct, id string, options Options) Website {
 	function := awscloudfront.NewFunction(this, jsii.String("cloudfront-function"), &awscloudfront.FunctionProps{
 		Code:         awscloudfront.FunctionCode_FromInline(jsii.String("function handler(event) {var request = event.request; var uri = request.uri; if (uri.endsWith('/')) {request.uri += 'index.html';} else if (!uri.includes('.')) {request.uri += '/index.html';};return request;}")),
 		Comment:      jsii.String("Rewrite the uri to add index.html after viewer request"),
-		FunctionName: jsii.String("cdkUrlRewriter"),
+		FunctionName: jsii.String(fmt.Sprintf("cdkUrlRewriter-%s", id)),
 	})
 	functionAssoc := awscloudfront.FunctionAssociation{
 		EventType: awscloudfront.FunctionEventType_VIEWER_REQUEST,
