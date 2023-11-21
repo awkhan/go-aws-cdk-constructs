@@ -36,12 +36,6 @@ func New(scope constructs.Construct, id string, options Options) Website {
 		AccessControl: awss3.BucketAccessControl_PRIVATE,
 	})
 
-	sourceAsset := awss3deployment.Source_Asset(&options.AssetPath, &awss3assets.AssetOptions{})
-	awss3deployment.NewBucketDeployment(this, jsii.String("bucket-deployment"), &awss3deployment.BucketDeploymentProps{
-		DestinationBucket: bucket,
-		Sources:           &[]awss3deployment.ISource{sourceAsset},
-	})
-
 	cfOAI := awscloudfront.NewOriginAccessIdentity(this, jsii.String("cloudfront-origin-access-identity"), &awscloudfront.OriginAccessIdentityProps{})
 
 	policyStatement := awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
@@ -76,6 +70,13 @@ func New(scope constructs.Construct, id string, options Options) Website {
 		},
 		Certificate: options.Certificate,
 		DomainNames: jsii.Strings(options.DomainName, fmt.Sprintf("www.%s", options.DomainName)),
+	})
+
+	sourceAsset := awss3deployment.Source_Asset(&options.AssetPath, &awss3assets.AssetOptions{})
+	awss3deployment.NewBucketDeployment(this, jsii.String("bucket-deployment"), &awss3deployment.BucketDeploymentProps{
+		DestinationBucket: bucket,
+		Sources:           &[]awss3deployment.ISource{sourceAsset},
+		Distribution:      distribution,
 	})
 
 	cfTarget := awsroute53targets.NewCloudFrontTarget(distribution)
