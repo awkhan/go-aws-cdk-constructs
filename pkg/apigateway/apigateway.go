@@ -3,13 +3,18 @@ package apigateway
 import (
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigateway"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awscertificatemanager"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsroute53"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsroute53targets"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 )
 
 type Options struct {
 	awscdk.StackProps
+	Certificate awscertificatemanager.ICertificate
+	HostedZone  awsroute53.IHostedZone
 }
 
 type APIGateway struct {
@@ -28,6 +33,21 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 			DataTraceEnabled: jsii.Bool(true),
 		},
 		CloudWatchRole: jsii.Bool(true),
+		DomainName: &awsapigateway.DomainNameOptions{
+			Certificate:  options.Certificate,
+			DomainName:   options.HostedZone.ZoneName(),
+			EndpointType: "EDGE",
+		},
+	})
+
+	awsroute53.NewARecord(this, jsii.String("route53-a-record"), &awsroute53.ARecordProps{
+		Zone:           options.HostedZone,
+		Comment:        nil,
+		DeleteExisting: nil,
+		GeoLocation:    nil,
+		RecordName:     jsii.String("api"),
+		Ttl:            nil,
+		Target:         awsroute53.RecordTarget_FromAlias(awsroute53targets.NewApiGateway(api)),
 	})
 
 	return APIGateway{this, api}
