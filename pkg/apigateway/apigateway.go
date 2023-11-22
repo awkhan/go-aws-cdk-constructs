@@ -1,6 +1,7 @@
 package apigateway
 
 import (
+	"fmt"
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigateway"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awscertificatemanager"
@@ -13,6 +14,7 @@ import (
 
 type Options struct {
 	awscdk.StackProps
+	APIName     string
 	Certificate awscertificatemanager.ICertificate
 	HostedZone  awsroute53.IHostedZone
 }
@@ -33,7 +35,7 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 
 	this := constructs.NewConstruct(scope, &id)
 
-	api := awsapigateway.NewRestApi(this, jsii.String("rest-api"), &awsapigateway.RestApiProps{
+	api := awsapigateway.NewRestApi(this, jsii.String(options.APIName), &awsapigateway.RestApiProps{
 		DeployOptions: &awsapigateway.StageOptions{
 			MetricsEnabled:   jsii.Bool(true),
 			LoggingLevel:     awsapigateway.MethodLoggingLevel_INFO,
@@ -42,7 +44,7 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 		CloudWatchRole: jsii.Bool(true),
 		DomainName: &awsapigateway.DomainNameOptions{
 			Certificate:  options.Certificate,
-			DomainName:   options.HostedZone.ZoneName(),
+			DomainName:   jsii.String(fmt.Sprintf("api.%s", *options.HostedZone.ZoneName())),
 			EndpointType: "EDGE",
 		},
 	})
