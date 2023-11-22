@@ -22,6 +22,13 @@ type APIGateway struct {
 	API awsapigateway.RestApi
 }
 
+type LambdaIntegration struct {
+	Function   awslambda.IFunction
+	Path       string
+	Method     string
+	Authorizer awsapigateway.IAuthorizer
+}
+
 func New(scope constructs.Construct, id string, options Options) APIGateway {
 
 	this := constructs.NewConstruct(scope, &id)
@@ -54,6 +61,12 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 
 }
 
+func (a *APIGateway) AddLambdaIntegrations(integrations []LambdaIntegration) {
+	for _, v := range integrations {
+		a.AddLambdaIntegration(v.Function, v.Path, v.Method, v.Authorizer)
+	}
+}
+
 func (a *APIGateway) AddLambdaIntegration(handler awslambda.IFunction, path, method string, authorizer awsapigateway.IAuthorizer) {
 	integration := awsapigateway.NewLambdaIntegration(handler, &awsapigateway.LambdaIntegrationOptions{})
 	resource := a.API.Root().AddResource(jsii.String(path), &awsapigateway.ResourceOptions{
@@ -67,8 +80,10 @@ func (a *APIGateway) AddLambdaIntegration(handler awslambda.IFunction, path, met
 		DefaultIntegration:   nil,
 		DefaultMethodOptions: nil,
 	})
-	resource.AddMethod(jsii.String(method), integration, &awsapigateway.MethodOptions{
-		AuthorizationType: "CUSTOM",
-		Authorizer:        authorizer,
-	})
+	options := &awsapigateway.MethodOptions{}
+	if authorizer != nil {
+		options.AuthorizationType = "CUSTOM"
+		options.Authorizer = authorizer
+	}
+	resource.AddMethod(jsii.String(method), integration, options)
 }
