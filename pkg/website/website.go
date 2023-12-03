@@ -77,6 +77,7 @@ func New(scope constructs.Construct, id string, options Options) Website {
 		DestinationBucket: bucket,
 		Sources:           &[]awss3deployment.ISource{sourceAsset},
 		Distribution:      distribution,
+		MemoryLimit:       jsii.Number(1024),
 	})
 
 	cfTarget := awsroute53targets.NewCloudFrontTarget(distribution)
