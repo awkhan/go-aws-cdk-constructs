@@ -41,7 +41,7 @@ func New(scope constructs.Construct, id string, options Options) GitHubOIDCProvi
 		AssumedBy:          awsiam.NewWebIdentityPrincipal(provider.OpenIdConnectProviderArn(), &conditions),
 		Description:        jsii.String("Used to deploy from GitHub actions"),
 		MaxSessionDuration: awscdk.Duration_Hours(jsii.Number(1)),
-		RoleName:           jsii.String("GitHub Actions Deployment Role"),
+		RoleName:           jsii.String("ITINTOGitHubDeploy"),
 	})
 
 	return GitHubOIDCProvider{this}
