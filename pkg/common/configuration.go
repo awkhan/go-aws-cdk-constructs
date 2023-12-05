@@ -8,6 +8,9 @@ import (
 	"os"
 )
 
+var USEastStackProps = &awscdk.StackProps{Env: &awscdk.Environment{Region: jsii.String("us-east-1")}, CrossRegionReferences: jsii.Bool(true)}
+var CaCentralStackProps = &awscdk.StackProps{Env: &awscdk.Environment{Region: jsii.String("ca-central-1")}, CrossRegionReferences: jsii.Bool(true)}
+
 func ParseConfigurationInto(app awscdk.App, cfg interface{}) {
 
 	env := app.Node().TryGetContext(jsii.String("environment"))

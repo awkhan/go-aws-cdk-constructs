@@ -80,21 +80,19 @@ func New(scope constructs.Construct, id string, options Options) Website {
 		MemoryLimit:       jsii.Number(1024),
 	})
 
-	if options.HostedZone != nil {
-		cfTarget := awsroute53targets.NewCloudFrontTarget(distribution)
-		awsroute53.NewARecord(this, jsii.String("distribution-a-record"), &awsroute53.ARecordProps{
-			Zone:   options.HostedZone,
-			Ttl:    awscdk.Duration_Seconds(jsii.Number(60)),
-			Target: awsroute53.RecordTarget_FromAlias(cfTarget),
-		})
+	cfTarget := awsroute53targets.NewCloudFrontTarget(distribution)
+	awsroute53.NewARecord(this, jsii.String("distribution-a-record"), &awsroute53.ARecordProps{
+		Zone:   options.HostedZone,
+		Ttl:    awscdk.Duration_Seconds(jsii.Number(60)),
+		Target: awsroute53.RecordTarget_FromAlias(cfTarget),
+	})
 
-		awsroute53.NewCnameRecord(this, jsii.String("www-redirect"), &awsroute53.CnameRecordProps{
-			Zone:       options.HostedZone,
-			Ttl:        awscdk.Duration_Seconds(jsii.Number(60)),
-			RecordName: jsii.String("www"),
-			DomainName: jsii.String(options.DomainName),
-		})
-	}
+	awsroute53.NewCnameRecord(this, jsii.String("www-redirect"), &awsroute53.CnameRecordProps{
+		Zone:       options.HostedZone,
+		Ttl:        awscdk.Duration_Seconds(jsii.Number(60)),
+		RecordName: jsii.String("www"),
+		DomainName: jsii.String(options.DomainName),
+	})
 
 	return Website{this}
 
