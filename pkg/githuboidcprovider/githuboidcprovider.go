@@ -34,14 +34,22 @@ func New(scope constructs.Construct, id string, options Options) GitHubOIDCProvi
 	conditions := map[string]interface{}{
 		"StringEquals": map[string]string{
 			githubHost + ":aud": clientID,
+		},
+		"StringLike": map[string]string{
 			githubHost + ":sub": "repo:" + options.GitHubRepoPath,
 		},
 	}
+
+	policies := []awsiam.IManagedPolicy{
+		awsiam.ManagedPolicy_FromAwsManagedPolicyName(jsii.String("AdministratorAccess")),
+	}
+
 	awsiam.NewRole(this, jsii.String("deployment-role"), &awsiam.RoleProps{
 		AssumedBy:          awsiam.NewWebIdentityPrincipal(provider.OpenIdConnectProviderArn(), &conditions),
 		Description:        jsii.String("Used to deploy from GitHub actions"),
 		MaxSessionDuration: awscdk.Duration_Hours(jsii.Number(1)),
 		RoleName:           jsii.String("ITINTOGitHubDeploy"),
+		ManagedPolicies:    &policies,
 	})
 
 	return GitHubOIDCProvider{this}
