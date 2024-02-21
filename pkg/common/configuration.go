@@ -13,12 +13,6 @@ var CaCentralStackProps = &awscdk.StackProps{Env: &awscdk.Environment{Region: js
 
 func ParseConfigurationInto(app awscdk.App, cfg interface{}) {
 
-	env := app.Node().TryGetContext(jsii.String("environment"))
-	if env == nil {
-		fmt.Println("no environment supplied. Pass in as '-c environment=production|staging")
-		os.Exit(1)
-	}
-
 	m := app.Node().GetContext(jsii.String(env.(string))).(map[string]interface{})
 	data, err := json.Marshal(m)
 	if err != nil {
