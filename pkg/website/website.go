@@ -18,10 +18,11 @@ import (
 
 type Options struct {
 	awscdk.StackProps
-	DomainName  string
-	AssetPath   string
-	Certificate awscertificatemanager.ICertificate
-	HostedZone  awsroute53.IHostedZone
+	DomainName         string
+	AssetPath          string
+	Certificate        awscertificatemanager.ICertificate
+	HostedZone         awsroute53.IHostedZone
+	CorsAllowedOrigins []string
 }
 
 type Website struct {
@@ -32,8 +33,25 @@ func New(scope constructs.Construct, id string, options Options) Website {
 
 	this := constructs.NewConstruct(scope, &id)
 
+	var corsRules []*awss3.CorsRule
+	if options.CorsAllowedOrigins != nil {
+
+		var allowedOrigins []*string
+		for _, v := range options.CorsAllowedOrigins {
+			allowedOrigins = append(allowedOrigins, jsii.String(v))
+		}
+
+		corsRules = []*awss3.CorsRule{
+			{
+				AllowedMethods: &[]awss3.HttpMethods{awss3.HttpMethods_GET},
+				AllowedOrigins: &allowedOrigins,
+			},
+		}
+	}
+
 	bucket := awss3.NewBucket(this, jsii.String("bucket"), &awss3.BucketProps{
 		AccessControl: awss3.BucketAccessControl_PRIVATE,
+		Cors:          &corsRules,
 	})
 
 	cfOAI := awscloudfront.NewOriginAccessIdentity(this, jsii.String("cloudfront-origin-access-identity"), &awscloudfront.OriginAccessIdentityProps{})
