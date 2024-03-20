@@ -85,6 +85,7 @@ func New(scope constructs.Construct, id string, options Options) Website {
 			FunctionAssociations: &[]*awscloudfront.FunctionAssociation{&functionAssoc}, //slightly awk
 			ViewerProtocolPolicy: awscloudfront.ViewerProtocolPolicy_REDIRECT_TO_HTTPS,
 			Origin:               bucketOrigin,
+			AllowedMethods:       awscloudfront.AllowedMethods_ALLOW_GET_HEAD_OPTIONS(),
 		},
 		Certificate: options.Certificate,
 		DomainNames: jsii.Strings(options.DomainName, fmt.Sprintf("www.%s", options.DomainName)),
