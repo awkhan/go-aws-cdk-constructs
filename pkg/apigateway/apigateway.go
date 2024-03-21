@@ -66,7 +66,7 @@ type DeploymentOptions struct {
 }
 
 type Deployment struct {
-	awscdk.Stack
+	constructs.Construct
 }
 
 func NewDeployment(scope constructs.Construct, id string, options DeploymentOptions) Deployment {
@@ -113,7 +113,7 @@ func NewDeployment(scope constructs.Construct, id string, options DeploymentOpti
 		Target:     awsroute53.RecordTarget_FromAlias(awsroute53targets.NewApiGatewayDomain(domainName)),
 	})
 
-	return Deployment{Stack: this}
+	return Deployment{this}
 
 }
 
