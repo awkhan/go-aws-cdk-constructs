@@ -48,11 +48,6 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 	}
 
 	api := awsapigateway.NewRestApi(this, jsii.String(options.APIName), &awsapigateway.RestApiProps{
-		DeployOptions: &awsapigateway.StageOptions{
-			MetricsEnabled:   jsii.Bool(true),
-			LoggingLevel:     awsapigateway.MethodLoggingLevel_INFO,
-			DataTraceEnabled: jsii.Bool(true),
-		},
 		CloudWatchRole: jsii.Bool(true),
 		DomainName: &awsapigateway.DomainNameOptions{
 			Certificate:  options.Certificate,
