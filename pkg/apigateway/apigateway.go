@@ -17,6 +17,7 @@ type Options struct {
 	APIName     string
 	Certificate awscertificatemanager.ICertificate
 	HostedZone  awsroute53.IHostedZone
+	Authorizer  awslambda.IFunction
 }
 
 type APIGateway struct {
@@ -35,6 +36,17 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 
 	this := constructs.NewConstruct(scope, &id)
 
+	var methodOptions *awsapigateway.MethodOptions
+	if options.Authorizer != nil {
+		authorizer := awsapigateway.NewRequestAuthorizer(this, jsii.String("request-authorizer"), &awsapigateway.RequestAuthorizerProps{
+			Handler:         options.Authorizer,
+			AuthorizerName:  jsii.String(fmt.Sprintf("%s-authorizer", options.APIName)),
+			ResultsCacheTtl: awscdk.Duration_Seconds(jsii.Number(30)),
+			IdentitySources: &[]*string{awsapigateway.IdentitySource_Header(jsii.String("authorizer"))},
+		})
+		methodOptions = &awsapigateway.MethodOptions{Authorizer: authorizer}
+	}
+
 	api := awsapigateway.NewRestApi(this, jsii.String(options.APIName), &awsapigateway.RestApiProps{
 		DeployOptions: &awsapigateway.StageOptions{
 			MetricsEnabled:   jsii.Bool(true),
@@ -47,6 +59,7 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 			DomainName:   jsii.String(fmt.Sprintf("api.%s", *options.HostedZone.ZoneName())),
 			EndpointType: "EDGE",
 		},
+		DefaultMethodOptions: methodOptions,
 	})
 
 	awsroute53.NewARecord(this, jsii.String("route53-a-record"), &awsroute53.ARecordProps{
