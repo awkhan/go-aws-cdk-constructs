@@ -19,6 +19,7 @@ import (
 type Options struct {
 	awscdk.StackProps
 	DomainName         string
+	BucketName         string
 	AssetPath          string
 	Certificate        awscertificatemanager.ICertificate
 	HostedZone         awsroute53.IHostedZone
@@ -52,6 +53,7 @@ func New(scope constructs.Construct, id string, options Options) Website {
 	bucket := awss3.NewBucket(this, jsii.String("bucket"), &awss3.BucketProps{
 		AccessControl: awss3.BucketAccessControl_PRIVATE,
 		Cors:          &corsRules,
+		BucketName:    jsii.String(options.BucketName),
 	})
 
 	cfOAI := awscloudfront.NewOriginAccessIdentity(this, jsii.String("cloudfront-origin-access-identity"), &awscloudfront.OriginAccessIdentityProps{})
