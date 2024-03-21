@@ -71,7 +71,7 @@ type Deployment struct {
 
 func NewDeployment(scope constructs.Construct, id string, options DeploymentOptions) Deployment {
 
-	this := awscdk.NewStack(scope, jsii.String("api-deployment"), options.StackProps)
+	this := awscdk.NewStack(scope, jsii.String(id), options.StackProps)
 
 	api := awsapigateway.RestApi_FromRestApiAttributes(this, jsii.String("rest-api"), &awsapigateway.RestApiAttributes{
 		RestApiId:      options.RestAPI.RestApiId(),
