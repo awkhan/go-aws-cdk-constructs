@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsroute53targets"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
+	"time"
 )
 
 type Options struct {
@@ -82,7 +83,7 @@ func NewDeployment(scope constructs.Construct, id string, options DeploymentOpti
 		AddLambdaIntegrationToAPIGateway(api, v.Function, v.Path, v.Method, v.Authorizer)
 	}
 
-	deployment := awsapigateway.NewDeployment(this, jsii.String("api-gw-deployment"), &awsapigateway.DeploymentProps{
+	deployment := awsapigateway.NewDeployment(this, jsii.String(fmt.Sprintf("api-gw-deployment-%s", time.Now().String())), &awsapigateway.DeploymentProps{
 		Api:         api,
 		Description: jsii.String("Deployment"),
 	})
