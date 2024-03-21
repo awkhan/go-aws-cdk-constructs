@@ -58,6 +58,8 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 		Deploy:               jsii.Bool(false),
 	})
 
+	api.Root().AddMethod(jsii.String("ANY"), nil, nil)
+
 	awsroute53.NewARecord(this, jsii.String("route53-a-record"), &awsroute53.ARecordProps{
 		Zone:           options.HostedZone,
 		Comment:        nil,
