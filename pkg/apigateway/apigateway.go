@@ -14,10 +14,8 @@ import (
 
 type Options struct {
 	awscdk.StackProps
-	APIName     string
-	Certificate awscertificatemanager.ICertificate
-	HostedZone  awsroute53.IHostedZone
-	Authorizer  awslambda.IFunction
+	APIName    string
+	Authorizer awslambda.IFunction
 }
 
 type APIGateway struct {
@@ -48,63 +46,75 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 	}
 
 	api := awsapigateway.NewRestApi(this, jsii.String(options.APIName), &awsapigateway.RestApiProps{
-		CloudWatchRole: jsii.Bool(true),
-		DomainName: &awsapigateway.DomainNameOptions{
-			Certificate:  options.Certificate,
-			DomainName:   jsii.String(fmt.Sprintf("api.%s", *options.HostedZone.ZoneName())),
-			EndpointType: "EDGE",
-		},
+		CloudWatchRole:       jsii.Bool(true),
 		DefaultMethodOptions: methodOptions,
 		Deploy:               jsii.Bool(false),
 	})
 
 	api.Root().AddMethod(jsii.String("ANY"), nil, nil)
 
-	awsroute53.NewARecord(this, jsii.String("route53-a-record"), &awsroute53.ARecordProps{
-		Zone:           options.HostedZone,
-		Comment:        nil,
-		DeleteExisting: nil,
-		GeoLocation:    nil,
-		RecordName:     jsii.String("api"),
-		Ttl:            nil,
-		Target:         awsroute53.RecordTarget_FromAlias(awsroute53targets.NewApiGateway(api)),
-	})
-
 	return APIGateway{this, api}
 
 }
 
-func (a *APIGateway) AddLambdaIntegrations(integrations []LambdaIntegration) {
-	for _, v := range integrations {
-		a.AddLambdaIntegration(v.Function, v.Path, v.Method, v.Authorizer)
-	}
+type DeploymentOptions struct {
+	*awscdk.StackProps
+	Certificate  awscertificatemanager.ICertificate
+	HostedZone   awsroute53.IHostedZone
+	RestAPI      awsapigateway.IRestApi
+	Integrations []LambdaIntegration
 }
 
-func (a *APIGateway) AddLambdaIntegration(handler awslambda.IFunction, path, method string, authorizer awsapigateway.IAuthorizer) {
-	integration := awsapigateway.NewLambdaIntegration(handler, &awsapigateway.LambdaIntegrationOptions{})
-	resource := a.API.Root().AddResource(jsii.String(path), &awsapigateway.ResourceOptions{
-		DefaultCorsPreflightOptions: &awsapigateway.CorsOptions{
-			AllowOrigins:     jsii.Strings("*"),
-			AllowCredentials: jsii.Bool(true),
-			AllowHeaders:     jsii.Strings("*"),
-			AllowMethods:     jsii.Strings("*"),
-			StatusCode:       jsii.Number(201),
-		},
-		DefaultIntegration:   nil,
-		DefaultMethodOptions: nil,
+type Deployment struct {
+	awscdk.Stack
+}
+
+func NewDeployment(scope constructs.Construct, id string, options DeploymentOptions) Deployment {
+
+	this := awscdk.NewStack(scope, jsii.String("api-deployment"), options.StackProps)
+
+	api := awsapigateway.RestApi_FromRestApiAttributes(this, jsii.String("rest-api"), &awsapigateway.RestApiAttributes{
+		RestApiId:      options.RestAPI.RestApiId(),
+		RootResourceId: options.RestAPI.Root().ResourceId(),
 	})
-	options := &awsapigateway.MethodOptions{}
-	if authorizer != nil {
-		options.AuthorizationType = "CUSTOM"
-		options.Authorizer = authorizer
-	}
-	resource.AddMethod(jsii.String(method), integration, options)
-}
 
-func AddLambdaIntegrationsToAPIGateway(api awsapigateway.IRestApi, integrations []LambdaIntegration) {
-	for _, v := range integrations {
+	for _, v := range options.Integrations {
 		AddLambdaIntegrationToAPIGateway(api, v.Function, v.Path, v.Method, v.Authorizer)
 	}
+
+	deployment := awsapigateway.NewDeployment(this, jsii.String("api-gw-deployment"), &awsapigateway.DeploymentProps{
+		Api:         api,
+		Description: jsii.String("Deployment"),
+	})
+
+	stage := awsapigateway.NewStage(this, jsii.String("api-gw-stage"), &awsapigateway.StageProps{
+		DataTraceEnabled: jsii.Bool(true),
+		LoggingLevel:     awsapigateway.MethodLoggingLevel_INFO,
+		MetricsEnabled:   jsii.Bool(true),
+		StageName:        jsii.String("prod"),
+		Deployment:       deployment,
+	})
+
+	api.SetDeploymentStage(stage)
+
+	domainName := awsapigateway.NewDomainName(this, jsii.String("domain-name"), &awsapigateway.DomainNameProps{
+		Certificate:  options.Certificate,
+		DomainName:   jsii.String(fmt.Sprintf("api.%s", *options.HostedZone.ZoneName())),
+		EndpointType: "EDGE",
+	})
+	domainName.AddBasePathMapping(api, &awsapigateway.BasePathMappingOptions{
+		AttachToStage: jsii.Bool(true),
+		Stage:         stage,
+	})
+
+	awsroute53.NewARecord(this, jsii.String("route53-a-record"), &awsroute53.ARecordProps{
+		Zone:       options.HostedZone,
+		RecordName: jsii.String("api"),
+		Target:     awsroute53.RecordTarget_FromAlias(awsroute53targets.NewApiGatewayDomain(domainName)),
+	})
+
+	return Deployment{Stack: this}
+
 }
 
 func AddLambdaIntegrationToAPIGateway(api awsapigateway.IRestApi, handler awslambda.IFunction, path, method string, authorizer awsapigateway.IAuthorizer) {
