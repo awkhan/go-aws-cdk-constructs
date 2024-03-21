@@ -60,6 +60,7 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 			EndpointType: "EDGE",
 		},
 		DefaultMethodOptions: methodOptions,
+		Deploy:               jsii.Bool(false),
 	})
 
 	awsroute53.NewARecord(this, jsii.String("route53-a-record"), &awsroute53.ARecordProps{
