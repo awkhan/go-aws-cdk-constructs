@@ -102,3 +102,30 @@ func (a *APIGateway) AddLambdaIntegration(handler awslambda.IFunction, path, met
 	}
 	resource.AddMethod(jsii.String(method), integration, options)
 }
+
+func AddLambdaIntegrationsToAPIGateway(api awsapigateway.IRestApi, integrations []LambdaIntegration) {
+	for _, v := range integrations {
+		AddLambdaIntegrationToAPIGateway(api, v.Function, v.Path, v.Method, v.Authorizer)
+	}
+}
+
+func AddLambdaIntegrationToAPIGateway(api awsapigateway.IRestApi, handler awslambda.IFunction, path, method string, authorizer awsapigateway.IAuthorizer) {
+	integration := awsapigateway.NewLambdaIntegration(handler, &awsapigateway.LambdaIntegrationOptions{})
+	resource := api.Root().AddResource(jsii.String(path), &awsapigateway.ResourceOptions{
+		DefaultCorsPreflightOptions: &awsapigateway.CorsOptions{
+			AllowOrigins:     jsii.Strings("*"),
+			AllowCredentials: jsii.Bool(true),
+			AllowHeaders:     jsii.Strings("*"),
+			AllowMethods:     jsii.Strings("*"),
+			StatusCode:       jsii.Number(201),
+		},
+		DefaultIntegration:   nil,
+		DefaultMethodOptions: nil,
+	})
+	options := &awsapigateway.MethodOptions{}
+	if authorizer != nil {
+		options.AuthorizationType = "CUSTOM"
+		options.Authorizer = authorizer
+	}
+	resource.AddMethod(jsii.String(method), integration, options)
+}
