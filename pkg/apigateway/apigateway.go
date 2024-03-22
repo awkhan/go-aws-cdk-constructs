@@ -58,7 +58,7 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 	if options.Authorizer != nil {
 		options.Authorizer.AddPermission(jsii.String("api-gateway-invoke"), &awslambda.Permission{
 			Principal: awsiam.NewServicePrincipal(jsii.String("apigateway.amazonaws.com"), nil),
-			SourceArn: api.ArnForExecuteApi(jsii.String("*"), jsii.String("*"), jsii.String("*")),
+			SourceArn: api.ArnForExecuteApi(jsii.String("*"), jsii.String("/*"), jsii.String("*")),
 		})
 	}
 
