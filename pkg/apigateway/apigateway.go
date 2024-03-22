@@ -63,7 +63,7 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 			Partition: jsii.String("aws"),
 			Region:    options.StackProps.Env.Region,
 		}, nil)
-		fmt.Println(arn)
+		fmt.Println(*arn)
 		options.Authorizer.AddPermission(jsii.String("api-gateway-invoke"), &awslambda.Permission{
 			Principal: awsiam.NewServicePrincipal(jsii.String("apigateway.amazonaws.com"), nil),
 			SourceArn: awscdk.Arn_Format(&awscdk.ArnComponents{
