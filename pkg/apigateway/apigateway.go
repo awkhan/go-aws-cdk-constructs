@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigateway"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awscertificatemanager"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsiam"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsroute53"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsroute53targets"
@@ -53,6 +54,13 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 		DefaultMethodOptions: methodOptions,
 		Deploy:               jsii.Bool(false),
 	})
+
+	if options.Authorizer != nil {
+		options.Authorizer.AddPermission(jsii.String("api-gateway-invoke"), &awslambda.Permission{
+			Principal: awsiam.NewServicePrincipal(jsii.String("apigateway.amazonaws.com"), nil),
+			SourceArn: api.ArnForExecuteApi(jsii.String("*"), jsii.String("*"), jsii.String("*")),
+		})
+	}
 
 	api.Root().AddMethod(jsii.String("ANY"), nil, nil)
 
