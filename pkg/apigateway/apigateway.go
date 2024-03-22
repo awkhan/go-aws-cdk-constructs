@@ -56,6 +56,14 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 	})
 
 	if options.Authorizer != nil {
+		arn := awscdk.Arn_Format(&awscdk.ArnComponents{
+			Resource:  jsii.String(fmt.Sprintf("%s/authorizers/%s", *api.RestApiId(), *authorizer.AuthorizerId())),
+			Service:   jsii.String("execute-api"),
+			Account:   options.StackProps.Env.Account,
+			Partition: jsii.String("aws"),
+			Region:    options.StackProps.Env.Region,
+		}, nil)
+		fmt.Println(arn)
 		options.Authorizer.AddPermission(jsii.String("api-gateway-invoke"), &awslambda.Permission{
 			Principal: awsiam.NewServicePrincipal(jsii.String("apigateway.amazonaws.com"), nil),
 			SourceArn: awscdk.Arn_Format(&awscdk.ArnComponents{
