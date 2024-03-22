@@ -21,7 +21,8 @@ type Options struct {
 
 type APIGateway struct {
 	constructs.Construct
-	API awsapigateway.RestApi
+	API        awsapigateway.RestApi
+	Authorizer awsapigateway.IAuthorizer
 }
 
 type LambdaIntegration struct {
@@ -36,8 +37,9 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 	this := constructs.NewConstruct(scope, &id)
 
 	var methodOptions *awsapigateway.MethodOptions
+	var authorizer awsapigateway.IAuthorizer
 	if options.Authorizer != nil {
-		authorizer := awsapigateway.NewRequestAuthorizer(this, jsii.String("request-authorizer"), &awsapigateway.RequestAuthorizerProps{
+		authorizer = awsapigateway.NewRequestAuthorizer(this, jsii.String("request-authorizer"), &awsapigateway.RequestAuthorizerProps{
 			Handler:         options.Authorizer,
 			AuthorizerName:  jsii.String(fmt.Sprintf("%s-authorizer", options.APIName)),
 			ResultsCacheTtl: awscdk.Duration_Seconds(jsii.Number(30)),
@@ -54,7 +56,7 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 
 	api.Root().AddMethod(jsii.String("ANY"), nil, nil)
 
-	return APIGateway{this, api}
+	return APIGateway{Construct: this, API: api, Authorizer: authorizer}
 
 }
 
