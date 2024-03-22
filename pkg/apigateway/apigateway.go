@@ -5,7 +5,6 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsapigateway"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awscertificatemanager"
-	"github.com/aws/aws-cdk-go/awscdk/v2/awsiam"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsroute53"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsroute53targets"
@@ -54,16 +53,6 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 		DefaultMethodOptions: methodOptions,
 		Deploy:               jsii.Bool(false),
 	})
-
-	if options.Authorizer != nil {
-		f := awslambda.Function_FromFunctionAttributes(scope, jsii.String("authorizer-lambda"), &awslambda.FunctionAttributes{FunctionArn: options.Authorizer.FunctionArn()})
-		sourceArn := fmt.Sprintf("arn:aws:execute-api:%s:%s:%s/authorizers/%s", *options.Env.Region, *options.Env.Account, *api.RestApiId(), *authorizer.AuthorizerId())
-		f.AddPermission(jsii.String("authorizer-permission"), &awslambda.Permission{
-			Principal: awsiam.NewServicePrincipal(jsii.String("apigateway.amazonaws.com"), nil),
-			Action:    jsii.String("lambda:InvokeFunction"),
-			SourceArn: &sourceArn,
-		})
-	}
 
 	api.Root().AddMethod(jsii.String("ANY"), nil, nil)
 
