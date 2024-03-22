@@ -43,7 +43,7 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 			Handler:         options.Authorizer,
 			AuthorizerName:  jsii.String(fmt.Sprintf("%s-authorizer", options.APIName)),
 			ResultsCacheTtl: awscdk.Duration_Seconds(jsii.Number(30)),
-			IdentitySources: &[]*string{awsapigateway.IdentitySource_Header(jsii.String("authorizer"))},
+			IdentitySources: &[]*string{awsapigateway.IdentitySource_Header(jsii.String("authorization"))},
 		})
 		methodOptions = &awsapigateway.MethodOptions{Authorizer: authorizer}
 	}
