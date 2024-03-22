@@ -121,22 +121,24 @@ func NewDeployment(scope constructs.Construct, id string, options DeploymentOpti
 }
 
 func AddLambdaIntegrationToAPIGateway(api awsapigateway.IRestApi, handler awslambda.IFunction, path, method string, authorizer awsapigateway.IAuthorizer) {
+
 	integration := awsapigateway.NewLambdaIntegration(handler, &awsapigateway.LambdaIntegrationOptions{})
-	resource := api.Root().AddResource(jsii.String(path), &awsapigateway.ResourceOptions{
-		DefaultCorsPreflightOptions: &awsapigateway.CorsOptions{
-			AllowOrigins:     jsii.Strings("*"),
-			AllowCredentials: jsii.Bool(true),
-			AllowHeaders:     jsii.Strings("*"),
-			AllowMethods:     jsii.Strings("*"),
-			StatusCode:       jsii.Number(201),
-		},
-		DefaultIntegration:   nil,
-		DefaultMethodOptions: nil,
+
+	resource := api.Root().ResourceForPath(jsii.String(path))
+	resource.AddCorsPreflight(&awsapigateway.CorsOptions{
+		AllowOrigins:     jsii.Strings("*"),
+		AllowCredentials: jsii.Bool(true),
+		AllowHeaders:     jsii.Strings("*"),
+		AllowMethods:     jsii.Strings("*"),
+		StatusCode:       jsii.Number(201),
 	})
+
 	options := &awsapigateway.MethodOptions{}
 	if authorizer != nil {
 		options.AuthorizationType = "CUSTOM"
 		options.Authorizer = authorizer
 	}
+
 	resource.AddMethod(jsii.String(method), integration, options)
+
 }
