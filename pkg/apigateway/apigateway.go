@@ -56,9 +56,9 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 	})
 
 	if options.Authorizer != nil {
-		//f := awslambda.Function_FromFunctionAttributes(scope, jsii.String("authorizer-lambda"), &awslambda.FunctionAttributes{FunctionArn: options.Authorizer.FunctionArn()})
+		f := awslambda.Function_FromFunctionAttributes(scope, jsii.String("authorizer-lambda"), &awslambda.FunctionAttributes{FunctionArn: options.Authorizer.FunctionArn()})
 		sourceArn := fmt.Sprintf("arn:aws:execute-api:%s:%s:%s/authorizers/%s", *options.Env.Region, *options.Env.Account, *api.RestApiId(), *authorizer.AuthorizerId())
-		options.Authorizer.AddToRolePolicy(awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
+		f.AddToRolePolicy(awsiam.NewPolicyStatement(&awsiam.PolicyStatementProps{
 			Actions:    jsii.Strings("lambda:InvokeFunction"),
 			Effect:     awsiam.Effect_ALLOW,
 			Principals: &[]awsiam.IPrincipal{awsiam.NewServicePrincipal(jsii.String("apigateway.amazonaws.com"), nil)},
