@@ -17,7 +17,7 @@ import (
 )
 
 type Options struct {
-	awscdk.StackProps
+	*awscdk.StackProps
 	DomainName         string
 	BucketName         string
 	AssetPath          string

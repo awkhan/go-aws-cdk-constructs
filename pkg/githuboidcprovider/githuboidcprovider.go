@@ -8,7 +8,7 @@ import (
 )
 
 type Options struct {
-	awscdk.StackProps
+	*awscdk.StackProps
 	GitHubRepoPath string
 }
 

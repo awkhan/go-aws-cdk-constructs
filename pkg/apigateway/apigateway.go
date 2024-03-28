@@ -14,7 +14,7 @@ import (
 )
 
 type Options struct {
-	awscdk.StackProps
+	*awscdk.StackProps
 	APIName    string
 	Authorizer awslambda.IFunction
 }
@@ -126,7 +126,6 @@ func NewDeployment(scope constructs.Construct, id string, options DeploymentOpti
 
 func AddLambdaIntegrationToAPIGateway(api awsapigateway.IRestApi, handler awslambda.IFunction, path, method string, authorizer awsapigateway.IAuthorizer, addCors bool) {
 
-	fmt.Println(fmt.Sprintf("Adding integration for path %s method %s with adding cors %t", path, method, addCors))
 	integration := awsapigateway.NewLambdaIntegration(handler, &awsapigateway.LambdaIntegrationOptions{})
 
 	resource := api.Root().ResourceForPath(jsii.String(path))
