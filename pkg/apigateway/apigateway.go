@@ -85,7 +85,7 @@ func NewDeployment(scope constructs.Construct, id string, options DeploymentOpti
 
 	for _, v := range options.Integrations {
 		_, ok := pathsWithCors[v.Path]
-		AddLambdaIntegrationToAPIGateway(api, v.Function, v.Path, v.Method, v.Authorizer, ok)
+		AddLambdaIntegrationToAPIGateway(api, v.Function, v.Path, v.Method, v.Authorizer, !ok)
 		pathsWithCors[v.Path] = true
 	}
 
