@@ -81,8 +81,12 @@ func NewDeployment(scope constructs.Construct, id string, options DeploymentOpti
 		RootResourceId: options.RestAPI.Root().ResourceId(),
 	})
 
+	pathsWithCors := map[string]bool{}
+
 	for _, v := range options.Integrations {
-		AddLambdaIntegrationToAPIGateway(api, v.Function, v.Path, v.Method, v.Authorizer)
+		_, ok := pathsWithCors[v.Path]
+		AddLambdaIntegrationToAPIGateway(api, v.Function, v.Path, v.Method, v.Authorizer, ok)
+		pathsWithCors[v.Path] = true
 	}
 
 	deployment := awsapigateway.NewDeployment(this, jsii.String(fmt.Sprintf("api-gw-deployment-%s", time.Now().String())), &awsapigateway.DeploymentProps{
@@ -120,18 +124,21 @@ func NewDeployment(scope constructs.Construct, id string, options DeploymentOpti
 
 }
 
-func AddLambdaIntegrationToAPIGateway(api awsapigateway.IRestApi, handler awslambda.IFunction, path, method string, authorizer awsapigateway.IAuthorizer) {
+func AddLambdaIntegrationToAPIGateway(api awsapigateway.IRestApi, handler awslambda.IFunction, path, method string, authorizer awsapigateway.IAuthorizer, addCors bool) {
 
 	integration := awsapigateway.NewLambdaIntegration(handler, &awsapigateway.LambdaIntegrationOptions{})
 
 	resource := api.Root().ResourceForPath(jsii.String(path))
-	resource.AddCorsPreflight(&awsapigateway.CorsOptions{
-		AllowOrigins:     jsii.Strings("*"),
-		AllowCredentials: jsii.Bool(true),
-		AllowHeaders:     jsii.Strings("*"),
-		AllowMethods:     jsii.Strings("*"),
-		StatusCode:       jsii.Number(201),
-	})
+
+	if addCors {
+		resource.AddCorsPreflight(&awsapigateway.CorsOptions{
+			AllowOrigins:     jsii.Strings("*"),
+			AllowCredentials: jsii.Bool(true),
+			AllowHeaders:     jsii.Strings("*"),
+			AllowMethods:     jsii.Strings("*"),
+			StatusCode:       jsii.Number(201),
+		})
+	}
 
 	options := &awsapigateway.MethodOptions{}
 	if authorizer != nil {
