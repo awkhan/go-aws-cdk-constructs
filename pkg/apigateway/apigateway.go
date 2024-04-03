@@ -54,6 +54,16 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 		Deploy:               jsii.Bool(false),
 	})
 
+	awsapigateway.NewGatewayResponse(this, jsii.String("403-gateway-response"), &awsapigateway.GatewayResponseProps{
+		Type: awsapigateway.ResponseType_DEFAULT_4XX(),
+		ResponseHeaders: &map[string]*string{
+			"Access-Control-Allow-Origin":  jsii.String("'*'"),
+			"Access-Control-Allow-Headers": jsii.String("'*'"),
+		},
+		StatusCode: jsii.String("403"),
+		RestApi:    api,
+	})
+
 	api.Root().AddMethod(jsii.String("ANY"), nil, nil)
 
 	return APIGateway{Construct: this, API: api, Authorizer: authorizer}
