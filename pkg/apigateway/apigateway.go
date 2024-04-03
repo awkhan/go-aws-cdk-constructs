@@ -54,8 +54,8 @@ func New(scope constructs.Construct, id string, options Options) APIGateway {
 		Deploy:               jsii.Bool(false),
 	})
 
-	awsapigateway.NewGatewayResponse(this, jsii.String("403-authorization-failure"), &awsapigateway.GatewayResponseProps{
-		Type: awsapigateway.ResponseType_AUTHORIZER_FAILURE(),
+	awsapigateway.NewGatewayResponse(this, jsii.String("access-denied-gateway-response"), &awsapigateway.GatewayResponseProps{
+		Type: awsapigateway.ResponseType_ACCESS_DENIED(),
 		ResponseHeaders: &map[string]*string{
 			"Access-Control-Allow-Origin":  jsii.String("'*'"),
 			"Access-Control-Allow-Headers": jsii.String("'*'"),
