@@ -91,6 +91,18 @@ func New(scope constructs.Construct, id string, options Options) Website {
 		},
 		Certificate: options.Certificate,
 		DomainNames: jsii.Strings(options.DomainName, fmt.Sprintf("www.%s", options.DomainName)),
+		ErrorResponses: &[]*awscloudfront.ErrorResponse{
+			{
+				HttpStatus:         jsii.Number(403),
+				ResponseHttpStatus: jsii.Number(200),
+				ResponsePagePath:   jsii.String("/index.html"),
+			},
+			{
+				HttpStatus:         jsii.Number(404),
+				ResponseHttpStatus: jsii.Number(200),
+				ResponsePagePath:   jsii.String("/index.html"),
+			},
+		},
 	})
 
 	sourceAsset := awss3deployment.Source_Asset(&options.AssetPath, &awss3assets.AssetOptions{})
