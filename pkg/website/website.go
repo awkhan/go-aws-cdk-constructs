@@ -18,12 +18,13 @@ import (
 
 type Options struct {
 	*awscdk.StackProps
-	DomainName         string
-	BucketName         string
-	AssetPath          string
-	Certificate        awscertificatemanager.ICertificate
-	HostedZone         awsroute53.IHostedZone
-	CorsAllowedOrigins []string
+	DomainName               string
+	BucketName               string
+	AssetPath                string
+	Certificate              awscertificatemanager.ICertificate
+	HostedZone               awsroute53.IHostedZone
+	CorsAllowedOrigins       []string
+	ExcludeDeploymentFolders *[]*string
 }
 
 type Website struct {
@@ -111,6 +112,7 @@ func New(scope constructs.Construct, id string, options Options) Website {
 		Sources:           &[]awss3deployment.ISource{sourceAsset},
 		Distribution:      distribution,
 		MemoryLimit:       jsii.Number(1024),
+		Exclude:           options.ExcludeDeploymentFolders,
 	})
 
 	cfTarget := awsroute53targets.NewCloudFrontTarget(distribution)
