@@ -122,7 +122,7 @@ func New(scope constructs.Construct, id string, options Options) Website {
 		Target: awsroute53.RecordTarget_FromAlias(cfTarget),
 	})
 
-	awsroute53.NewARecord(this, jsii.String("distribution-a-record"), &awsroute53.ARecordProps{
+	awsroute53.NewARecord(this, jsii.String("distribution-www-a-record"), &awsroute53.ARecordProps{
 		Zone:       options.HostedZone,
 		Ttl:        awscdk.Duration_Seconds(jsii.Number(60)),
 		Target:     awsroute53.RecordTarget_FromAlias(cfTarget),
