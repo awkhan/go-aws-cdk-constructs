@@ -68,9 +68,9 @@ func New(scope constructs.Construct, id string, options Options) Website {
 	})
 	bucket.AddToResourcePolicy(policyStatement)
 
-	bucketOrigin := awscloudfrontorigins.NewS3Origin(bucket, &awscloudfrontorigins.S3OriginProps{
-		ConnectionAttempts:   jsii.Number(2),
-		OriginAccessIdentity: cfOAI,
+	bucketOrigin := awscloudfrontorigins.NewS3StaticWebsiteOrigin(bucket, &awscloudfrontorigins.S3StaticWebsiteOriginProps{
+		ConnectionAttempts: jsii.Number(2),
+		OriginId:           cfOAI.OriginAccessIdentityId(),
 	})
 
 	function := awscloudfront.NewFunction(this, jsii.String("cloudfront-function"), &awscloudfront.FunctionProps{
