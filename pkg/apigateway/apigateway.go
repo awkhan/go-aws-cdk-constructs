@@ -93,9 +93,11 @@ func NewDeployment(scope constructs.Construct, id string, options DeploymentOpti
 
 	pathsWithCors := map[string]bool{}
 
+	var methods []awsapigateway.Method
+
 	for _, v := range options.Integrations {
 		_, ok := pathsWithCors[v.Path]
-		AddLambdaIntegrationToAPIGateway(api, v.Function, v.Path, v.Method, v.Authorizer, !ok)
+		methods = append(methods, AddLambdaIntegrationToAPIGateway(api, v.Function, v.Path, v.Method, v.Authorizer, !ok)...)
 		pathsWithCors[v.Path] = true
 	}
 
@@ -103,6 +105,25 @@ func NewDeployment(scope constructs.Construct, id string, options DeploymentOpti
 		Api:         api,
 		Description: jsii.String("Deployment"),
 	})
+
+	// A deployment is a snapshot of the API taken when it is created, so every method has to
+	// exist first. The API here is imported by id rather than owned, which is why this is not
+	// automatic: CDK cannot infer that these methods belong to it, so nothing orders the two
+	// and CloudFormation is free to create the deployment before the methods.
+	//
+	// The failure is quiet and only shows up when a route is added — existing routes are
+	// already in the previous snapshot, so the stage keeps serving them while the new one
+	// returns 403 "Missing Authentication Token" until something triggers a second deploy.
+	//
+	// The dependency is on the CfnMethod alone, not the method construct. A construct pulls
+	// in its whole subtree, and a method's subtree holds the Lambda permission whose
+	// SourceArn names the stage — which depends on this deployment, closing a cycle that
+	// makes the template undeployable.
+	for _, m := range methods {
+		if cfnMethod := m.Node().DefaultChild(); cfnMethod != nil {
+			deployment.Node().AddDependency(cfnMethod)
+		}
+	}
 
 	stage := awsapigateway.NewStage(this, jsii.String("api-gw-stage"), &awsapigateway.StageProps{
 		DataTraceEnabled: jsii.Bool(true),
@@ -134,20 +155,24 @@ func NewDeployment(scope constructs.Construct, id string, options DeploymentOpti
 
 }
 
-func AddLambdaIntegrationToAPIGateway(api awsapigateway.IRestApi, handler awslambda.IFunction, path, method string, authorizer awsapigateway.IAuthorizer, addCors bool) {
+// AddLambdaIntegrationToAPIGateway returns every method it created, so a caller building a
+// deployment can depend on them. Callers that ignore the return are unaffected.
+func AddLambdaIntegrationToAPIGateway(api awsapigateway.IRestApi, handler awslambda.IFunction, path, method string, authorizer awsapigateway.IAuthorizer, addCors bool) []awsapigateway.Method {
 
 	integration := awsapigateway.NewLambdaIntegration(handler, &awsapigateway.LambdaIntegrationOptions{})
 
 	resource := api.Root().ResourceForPath(jsii.String(path))
 
+	var methods []awsapigateway.Method
+
 	if addCors {
-		resource.AddCorsPreflight(&awsapigateway.CorsOptions{
+		methods = append(methods, resource.AddCorsPreflight(&awsapigateway.CorsOptions{
 			AllowOrigins:     jsii.Strings("*"),
 			AllowCredentials: jsii.Bool(true),
 			AllowHeaders:     jsii.Strings("*"),
 			AllowMethods:     jsii.Strings("*"),
 			StatusCode:       jsii.Number(201),
-		})
+		}))
 	}
 
 	options := &awsapigateway.MethodOptions{}
@@ -156,6 +181,8 @@ func AddLambdaIntegrationToAPIGateway(api awsapigateway.IRestApi, handler awslam
 		options.Authorizer = authorizer
 	}
 
-	resource.AddMethod(jsii.String(method), integration, options)
+	methods = append(methods, resource.AddMethod(jsii.String(method), integration, options))
+
+	return methods
 
 }
